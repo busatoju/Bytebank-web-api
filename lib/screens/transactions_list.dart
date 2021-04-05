@@ -20,7 +20,7 @@ class TransactionsList extends StatelessWidget {
             case ConnectionState.none:
               break;
             case ConnectionState.waiting:
-              Progress();
+              return Progress();
               break;
             case ConnectionState.active:
               break;
@@ -63,8 +63,7 @@ class TransactionsList extends StatelessWidget {
           }
 
           return CenteredMessage(
-            message: 'Esgotado tempo limite do pedido',
-            iconData: Icons.error,
+            message: 'Unknown error',
           );
         },
       ),
