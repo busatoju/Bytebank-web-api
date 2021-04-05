@@ -4,8 +4,6 @@ import 'package:bytebank_web_api/models/transaction.dart';
 import 'package:http/http.dart';
 
 class TransactionWebClient {
-
-
   Future<Transaction> save(Transaction transaction, String password) async {
     final String transactionJson = jsonEncode(transaction.toJson());
     final Response response = await client.post(url,
@@ -15,6 +13,14 @@ class TransactionWebClient {
         },
         body: transactionJson);
 
+    switch (response.statusCode) {
+      case 400:
+        throw Exception('There was an error submitting transaction');
+        break;
+      case 401:
+        throw Exception('Authentication failed');
+        break;
+    }
     return Transaction.fromJson(jsonDecode(response.body));
   }
 
