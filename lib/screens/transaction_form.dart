@@ -99,6 +99,6 @@ class _TransactionFormState extends State<TransactionForm> {
       showDialog(
           context: context,
           builder: (contextDialog) => FailureDialog(e.message));
-    });
+    }, test: (e) => e is Exception);
   }
 }
