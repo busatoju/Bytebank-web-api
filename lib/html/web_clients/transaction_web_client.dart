@@ -12,24 +12,36 @@ class TransactionWebClient {
           'password': password,
         },
         body: transactionJson);
+        
+    //throw Exception(); //Simular erro desconhecido
 
-    switch (response.statusCode) {
-      case 400:
-        throw Exception('There was an error submitting transaction');
-        break;
-      case 401:
-        throw Exception('Authentication failed');
-        break;
+    if (response.statusCode == 200) {
+      return Transaction.fromJson(jsonDecode(response.body));
     }
-    return Transaction.fromJson(jsonDecode(response.body));
+     throw HttpException(_statusCodeResponses[response.statusCode]);
   }
+
+  static final Map<int, String> _statusCodeResponses = {
+    400: 'There was an error submitting transaction',
+    401: 'Authentication failed',
+  };
+
+
 
   Future<List<Transaction>> findAll() async {
     final Response response =
-        await client.get(url).timeout(Duration(seconds: 5));
+        await client.get(url);
     final List<dynamic> decodedJson = jsonDecode(response.body);
     return decodedJson
         .map((dynamic json) => Transaction.fromJson(json))
         .toList();
   }
+}
+
+class HttpException implements Exception{
+  final String message;
+
+  HttpException(this.message);
+
+
 }
