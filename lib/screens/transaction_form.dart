@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bytebank_web_api/components/response_dialog.dart';
 import 'package:bytebank_web_api/components/transaction_auth_dialog.dart';
 import 'package:bytebank_web_api/html/web_clients/transaction_web_client.dart';
@@ -87,18 +89,50 @@ class _TransactionFormState extends State<TransactionForm> {
   }
 
   void _save(
-      Transaction transactionCreated, String password, BuildContext context) {
-    _webClient.save(transactionCreated, password).then((transaction) {
-      if (transaction != null) {
-        showDialog(
-            context: context,
-            builder: (contextDialog) =>
-                SuccessDialog('Successful transaction'));
-      }
-    }).catchError((e) {
-      showDialog(
+    Transaction transactionCreated,
+    String password,
+    BuildContext context,
+  ) async {
+    Transaction transaction =
+        await _send(transactionCreated, password, context);
+
+    await _showSuccessfulMessage(transaction, context);
+  }
+
+  Future _showSuccessfulMessage(
+      Transaction transaction, BuildContext context) async {
+    if (transaction != null) {
+      await showDialog(
           context: context,
-          builder: (contextDialog) => FailureDialog(e.message));
-    }, test: (e) => e is Exception);
+          builder: (contextDialog) {
+            return SuccessDialog('successful transaction');
+          });
+      Navigator.pop(context);
+    }
+  }
+
+  Future<Transaction> _send(Transaction transactionCreated, String password,
+      BuildContext context) async {
+    final Transaction transaction =
+        await _webClient.save(transactionCreated, password).catchError((e) {
+      _showFailureMessage(context, message: e.message);
+    }, test: (e) => e is HttpException).catchError((e) {
+      _showFailureMessage(context,
+          message: 'Timeout submitting the transaction');
+    }, test: (e) => e is TimeoutException).catchError((e) {
+      _showFailureMessage(
+        context,
+      );
+    });
+    return transaction;
+  }
+
+  void _showFailureMessage(BuildContext context,
+      {String message: 'Unknown error'}) {
+    showDialog(
+        context: context,
+        builder: (contextDialog) {
+          return FailureDialog(message);
+        });
   }
 }
